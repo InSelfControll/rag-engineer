@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}About - RAG System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card" style="max-width: 900px; margin: 0 auto;">
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">About RAG System</h1>
+        <p style="font-size: 1.1rem; color: var(--accent); margin-bottom: 2rem;">Retrieval-Augmented Generation Interface</p>
+
+        <section style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent);">🎯 What is RAG?</h2>
+            <p style="line-height: 1.8; color: var(--muted);">
+                RAG (Retrieval-Augmented Generation) is an advanced AI architecture that combines the power of 
+                large language models with information retrieval systems. This approach enhances the accuracy 
+                and relevance of AI-generated responses by grounding them in specific, retrieved knowledge.
+            </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent);">🔧 How It Works</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 0.5rem;">1</div>
+                    <h3 style="margin-bottom: 0.5rem;">Document Processing</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">Text documents are tokenized, cleaned, and split into meaningful chunks using NLTK.</p>
+                </div>
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 0.5rem;">2</div>
+                    <h3 style="margin-bottom: 0.5rem;">Vector Embeddings</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">Each chunk is converted into dense vector representations using SentenceTransformers.</p>
+                </div>
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 0.5rem;">3</div>
+                    <h3 style="margin-bottom: 0.5rem;">FAISS Indexing</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">Vectors are stored in a FAISS index for efficient similarity search.</p>
+                </div>
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 0.5rem;">4</div>
+                    <h3 style="margin-bottom: 0.5rem;">Retrieval & Generation</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">User queries retrieve relevant chunks, which are then used by Gemini to generate contextual answers.</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent);">💡 Key Technologies</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <h3 style="margin-bottom: 0.5rem;">🤖 Google Gemini</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">Advanced language model for generating natural, contextual responses</p>
+                </div>
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <h3 style="margin-bottom: 0.5rem;">🔍 FAISS</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">Fast similarity search library for efficient vector retrieval</p>
+                </div>
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <h3 style="margin-bottom: 0.5rem;">📊 SentenceTransformers</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">State-of-the-art model for creating semantic text embeddings</p>
+                </div>
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <h3 style="margin-bottom: 0.5rem;">📝 NLTK</h3>
+                    <p style="font-size: 0.9rem; color: var(--muted);">Natural Language Toolkit for text processing and tokenization</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent);">✨ Features</h2>
+            <ul style="list-style: none; padding-left: 0;">
+                <li style="padding: 0.5rem 0; color: var(--muted);">🚀 Fast and efficient document retrieval using vector similarity search</li>
+                <li style="padding: 0.5rem 0; color: var(--muted);">🎯 Context-aware answer generation with relevant source citations</li>
+                <li style="padding: 0.5rem 0; color: var(--muted);">📚 Support for multiple document formats and large knowledge bases</li>
+                <li style="padding: 0.5rem 0; color: var(--muted);">🔄 Real-time processing with immediate query results</li>
+                <li style="padding: 0.5rem 0; color: var(--muted);">💪 Scalable architecture suitable for various use cases</li>
+            </ul>
+        </section>
+
+        <section style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Ready to Try?</h2>
+            <p style="color: var(--muted); margin-bottom: 1rem;">Experience the power of RAG by asking questions based on your documents.</p>
+            <a href="{{ url_for('index_page') }}" style="display: inline-block; background: linear-gradient(180deg, var(--accent), var(--accent-2)); color: #fff; padding: 0.7rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 600;">Start Asking Questions</a>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}RAG Chatbot{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="grid">
+    <!-- Left: Robot + Chat -->
+    <div class="col chat-col">
+      <div class="card">
+        <div class="robot-stage" style="position: relative; display: flex; justify-content: center; padding-top: .25rem; margin-bottom: 1rem;">
+          <div id="robot" class="robot" style="position: relative;">
+            <div class="antenna"><span class="tip"></span></div>
+            <div class="head">
+              <div class="eyes">
+                <span class="eye left"><i></i></span>
+                <span class="eye right"><i></i></span>
+              </div>
+              <div class="mouth"></div>
+            </div>
+            <div class="body"><div class="panel"></div></div>
+          </div>
+        </div>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="chat-form" class="chat-form" autocomplete="off">
+          <input id="chat-input" type="text" placeholder="Ask me anything from your docs…" required />
+          <div class="controls">
+            <button id="send-btn" type="submit">Send</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Docs panel -->
+    <div class="col docs-col">
+      <section class="card">
+        <h2 style="margin-bottom: 1rem;">Documents</h2>
+        <p class="muted small">Upload files directly to the Knowledge Base.</p>
+        <form id="upload-form" enctype="multipart/form-data" class="upload-form">
+          <input type="file" name="file" id="files" style="margin-bottom: 0.6rem;">
+          <button type="submit" class="secondary" style="width: 100%; margin-bottom: 0.5rem;">Upload & Ingest</button>
+          <div id="upload-progress-wrapper" class="progress-wrapper">
+            <div class="progress-container">
+              <div id="upload-progress-bar" class="progress-fill">0%</div>
+            </div>
+          </div>
+        </form>
+        <div id="status" class="muted small" style="margin-top: 0.8rem;">Ready</div>
+      </section>
+
+      <section class="card" style="display: none;">
+        <h2 style="margin-bottom: 1rem;">Last Context</h2>
+        <details id="ctx-details" open>
+          <summary style="cursor: pointer; margin-bottom: 0.5rem;">Show/Hide</summary>
+          <ol id="context-list" style="padding-left: 1.2rem; color: var(--muted); font-size: 0.9rem;"></ol>
+        </details>
+      </section>
+    </div>
+  </section>
+</div>
+
+<script>
+const msgs  = document.getElementById("messages");
+const robot = document.getElementById("robot");
+const input = document.getElementById("chat-input");
+const form  = document.getElementById("chat-form");
+const sendBtn = document.getElementById("send-btn");
+// const topKEl  = document.getElementById("topk");
+// const ctxList = document.getElementById("context-list");
+const statusEl = document.getElementById("status");
+
+// Bubble helpers
+function addBubble(text, who="user") {
+  const wrap = document.createElement("div");
+  wrap.className = `message ${who}`;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble " + who;
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bubble;
+}
+
+async function typeInto(el, text, delay=12) {
+  el.textContent = "";
+  // Preserve line breaks and formatting
+  el.style.whiteSpace = "pre-wrap";
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    await new Promise(r => setTimeout(r, delay));
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function setThinking(on) {
+  robot.classList.toggle("thinking", on);
+  sendBtn.disabled = on;
+}
+
+// Chat
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = input.value.trim();
+  if (!question) return;
+  // const k = Math.max(1, Math.min(10, parseInt(topKEl.value || "3", 10)));
+
+  // user bubble
+  addBubble(question, "user");
+  input.value = "";
+
+  // bot bubble placeholder
+  const botBubble = addBubble("…", "bot");
+  setThinking(true);
+
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ query: question })
+    });
+    const data = await res.json();
+
+    // Context display moved to optional/hidden
+    /*
+    ctxList.innerHTML = "";
+    if (data.documents && data.documents.length > 0) {
+      data.documents.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.content.substring(0, 100) + "...";
+        ctxList.appendChild(li);
+      });
+    }
+    */
+
+    if (data.error) {
+      await typeInto(botBubble, "⚠️ " + data.error, 10);
+    } else {
+      // Clean up the answer text to ensure proper formatting
+      const answer = data.answer || "(no answer)";
+      await typeInto(botBubble, answer, 8);
+    }
+  } catch (err) {
+    await typeInto(botBubble, "⚠️ Could not reach the server.", 12);
+  } finally {
+    setThinking(false);
+  }
+});
+
+// Upload
+document.getElementById("upload-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const fileInput = document.getElementById("files");
+  const progressWrapper = document.getElementById("upload-progress-wrapper");
+  const progressBar = document.getElementById("upload-progress-bar");
+
+  if (!fileInput.files.length) {
+    statusEl.textContent = "No file selected";
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("file", fileInput.files[0]);
+
+  statusEl.textContent = "Uploading to S3...";
+  progressWrapper.style.display = "block";
+  progressBar.style.width = "0%";
+  progressBar.textContent = "0%";
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/upload", true);
+
+  // Update progress bar
+  xhr.upload.onprogress = function(e) {
+    if (e.lengthComputable) {
+      const percentComplete = Math.round((e.loaded / e.total) * 100);
+      progressBar.style.width = percentComplete + "%";
+      progressBar.textContent = percentComplete + "%";
+    }
+  };
+
+  xhr.onload = function() {
+    progressWrapper.style.display = "none";
+    if (xhr.status === 200) {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        statusEl.textContent = data.error ? `Error: ${data.error}` : data.message;
+        if (!data.error) { // Only clear if successful
+             fileInput.value = "";
+        }
+      } catch (err) {
+        statusEl.textContent = "Error parsing server response";
+      }
+    } else {
+      try {
+          const data = JSON.parse(xhr.responseText);
+          statusEl.textContent = data.error ? `Error: ${data.error}` : "Upload failed";
+      } catch(err) {
+          statusEl.textContent = "Upload failed with status " + xhr.status;
+      }
+    }
+  };
+
+  xhr.onerror = function() {
+    progressWrapper.style.display = "none";
+    statusEl.textContent = "Upload failed (network error)";
+  };
+
+  xhr.send(fd);
+});
+
+// Reindex
+/*
+
+document.getElementById("reindex-btn").addEventListener("click", async () => {
+  statusEl.textContent = "Reindexing...";
+  try {
+    const res = await fetch("/reindex", { method: "POST" });
+    const data = await res.json();
+    statusEl.textContent = data.error ? `Error: ${data.error}` : data.message;
+  } catch (err) {
+    statusEl.textContent = "Reindex failed";
+  }
+});
+*/
+</script>
+
+<style>
+.k-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.k-label input {
+  width: 60px;
+}
+button.ghost {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text);
+}
+button.ghost:hover {
+  background: var(--card);
+}
+code {
+  background: var(--bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // No additional JS needed; all functionality is included above.
+</script>
+{% endblock %}

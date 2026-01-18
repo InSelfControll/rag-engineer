@@ -1,0 +1,10 @@
+.git*
+node_modules
+temp/
+*.log
+!README.md
+.venv
+.env*
+DOCUMENTATION_SUMMARY.md
+*.md
+data/*
